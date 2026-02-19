@@ -1,0 +1,75 @@
+import time
+
+saldo = 0.0
+opcion = 0
+total_retiros = 0.0
+transacciones = []
+
+print("\n\n  ----------------------\n")
+print("\n\n   BIENVENIDO AL BANCO\n")
+print("\n\n  ----------------------\n")
+
+while opcion != 6:
+    print("\nSELECCIONE UNA OPCIÓN DE 1 A 6: \n")
+    print("1) VER SALDO.")
+    print("2) INGRESAR DINERO.")
+    print("3) RETIRAR DINERO.")
+    print("4) VER TOTAL DE RETIROS.")
+    print("5) VER HISTORIAL DE TRANSACCIONES.")
+    print("6) SALIR.\n")
+    
+    try:
+        opcion = int(input("INGRESE UNA OPCIÓN: "))
+        if opcion not in [1, 2, 3, 4, 5, 6]:
+            print("OPCIÓN INVÁLIDA. DEBE SER UN NÚMERO DEL 1 AL 6.\n")
+            continue
+    except ValueError:
+        print("ERROR: DEBE INGRESAR UN NÚMERO ENTERO.\n")
+        continue
+
+    if opcion == 1:
+        print(f"SU SALDO ACTUAL ES DE: {saldo}\n")
+
+    elif opcion == 2:
+        try:
+            ingreso = float(input("INGRESE EL MONTO DE DINERO QUE QUIERE INGRESAR AL BANCO:\n"))
+            if ingreso > 0:
+                saldo += ingreso
+                fecha_hora = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                transacciones.append(f"[{fecha_hora}] INGRESO: +{ingreso}")
+                print(f"USTED INGRESÓ: {ingreso}  |  SU SALDO ACTUAL ES DE: {saldo}\n")
+            else:
+                print("EL MONTO DE INGRESO DEBE SER POSITIVO.\n")
+        except ValueError:
+            print("ERROR: DEBE INGRESAR UN NÚMERO VÁLIDO.\n")
+
+    elif opcion == 3:
+        try:
+            retiro = float(input("INGRESE EL MONTO A RETIRAR:\n"))
+            if retiro <= 0:
+                print("EL MONTO DE RETIRO DEBE SER POSITIVO.\n")
+            elif retiro <= saldo:
+                saldo -= retiro
+                total_retiros += retiro
+                fecha_hora = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                transacciones.append(f"[{fecha_hora}] RETIRO: -{retiro}")
+                print(f"RETIRO EXITOSO. SALDO ACTUAL: {saldo}\n")
+            else:
+                print("SALDO INSUFICIENTE.\n")
+        except ValueError:
+            print("ERROR: DEBE INGRESAR UN NÚMERO VÁLIDO.\n")
+
+    elif opcion == 4:
+        print(f"EL TOTAL DE SALDO RETIRADO ES DE: {total_retiros}  |  SU SALDO ACTUAL ES DE: {saldo}\n")
+
+    elif opcion == 5:
+        if not transacciones:
+            print("NO HAY TRANSACCIONES REGISTRADAS.\n")
+        else:
+            print("HISTORIAL DE TRANSACCIONES:")
+            for t in transacciones:
+                print(t)
+            print(f"\nSALDO ACTUAL: {saldo}\n")
+
+    elif opcion == 6:
+        print("SALISTE DEL BANCO. GRACIAS POR PREFERIRNOS.\n")

@@ -1,7 +1,13 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import sqlite3
 from datetime import datetime
+
+# LIBRERIAS EXPORTACION
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from openpyxl import Workbook
+
 
 # -----------------------
 # BASE DE DATOS
@@ -26,11 +32,13 @@ def crear_tabla():
     conn.commit()
     conn.close()
 
+
 # -----------------------
 # FUNCIONES
 # -----------------------
 
 def actualizar_listas():
+
     lista_depositos.delete(0, tk.END)
     lista_retiros.delete(0, tk.END)
 
@@ -40,6 +48,7 @@ def actualizar_listas():
     cursor.execute("SELECT id, tipo, valor FROM transacciones")
 
     for id, tipo, valor in cursor.fetchall():
+
         texto = f"{id} - {valor}"
 
         if tipo == "INGRESO":
@@ -50,7 +59,9 @@ def actualizar_listas():
     conn.close()
     actualizar_saldo()
 
+
 def actualizar_saldo():
+
     conn = conectar()
     cursor = conn.cursor()
 
@@ -75,8 +86,15 @@ def actualizar_saldo():
 
     conn.close()
 
+
+# -----------------------
+# TRANSACCIONES
+# -----------------------
+
 def depositar():
+
     try:
+
         valor = float(entry_valor.get())
 
         if valor <= 0:
@@ -95,13 +113,17 @@ def depositar():
         conn.close()
 
         entry_valor.delete(0, tk.END)
+
         actualizar_listas()
 
     except:
         messagebox.showerror("Error", "Ingrese un número válido")
 
+
 def retirar():
+
     try:
+
         valor = float(entry_valor.get())
 
         conn = conectar()
@@ -134,19 +156,28 @@ def retirar():
         conn.close()
 
         entry_valor.delete(0, tk.END)
+
         actualizar_listas()
 
     except:
         messagebox.showerror("Error", "Ingrese un número válido")
-        
+
+
+# -----------------------
+# ELIMINAR
+# -----------------------
+
 def eliminar_transaccion():
+
     seleccion_dep = lista_depositos.curselection()
     seleccion_ret = lista_retiros.curselection()
 
     if seleccion_dep:
         texto = lista_depositos.get(seleccion_dep)
+
     elif seleccion_ret:
         texto = lista_retiros.get(seleccion_ret)
+
     else:
         messagebox.showerror("Error", "Seleccione una transacción")
         return
@@ -157,21 +188,116 @@ def eliminar_transaccion():
     cursor = conn.cursor()
 
     cursor.execute("DELETE FROM transacciones WHERE id=?", (id,))
+
     conn.commit()
     conn.close()
 
     actualizar_listas()
+
+
+# -----------------------
+# NUEVO
+# -----------------------
 
 def nuevo():
+
     conn = conectar()
     cursor = conn.cursor()
+
     cursor.execute("DELETE FROM transacciones")
+
     conn.commit()
     conn.close()
 
     actualizar_listas()
-   
-    
+
+
+# -----------------------
+# EXPORTAR PDF
+# -----------------------
+
+def exportar_pdf():
+
+    ruta = filedialog.asksaveasfilename(
+        defaultextension=".pdf",
+        filetypes=[("Archivo PDF", "*.pdf")]
+    )
+
+    if not ruta:
+        return
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, tipo, valor, fecha FROM transacciones")
+
+    datos = cursor.fetchall()
+
+    conn.close()
+
+    doc = SimpleDocTemplate(ruta)
+
+    elementos = []
+
+    estilos = getSampleStyleSheet()
+
+    elementos.append(Paragraph("Reporte de Transacciones", estilos["Heading1"]))
+
+    tabla_datos = [["ID", "Tipo", "Valor", "Fecha"]]
+
+    for fila in datos:
+        tabla_datos.append(fila)
+
+    tabla = Table(tabla_datos)
+
+    tabla.setStyle([
+        ("GRID", (0,0), (-1,-1), 1, "black")
+    ])
+
+    elementos.append(tabla)
+
+    doc.build(elementos)
+
+    messagebox.showinfo("Éxito", "PDF guardado correctamente")
+
+
+# -----------------------
+# EXPORTAR EXCEL
+# -----------------------
+
+def exportar_excel():
+
+    ruta = filedialog.asksaveasfilename(
+        defaultextension=".xlsx",
+        filetypes=[("Archivo Excel", "*.xlsx")]
+    )
+
+    if not ruta:
+        return
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, tipo, valor, fecha FROM transacciones")
+
+    datos = cursor.fetchall()
+
+    conn.close()
+
+    wb = Workbook()
+
+    ws = wb.active
+
+    ws.title = "Transacciones"
+
+    ws.append(["ID", "Tipo", "Valor", "Fecha"])
+
+    for fila in datos:
+        ws.append(fila)
+
+    wb.save(ruta)
+
+    messagebox.showinfo("Éxito", "Excel guardado correctamente")
 
 
 # -----------------------
@@ -181,67 +307,81 @@ def nuevo():
 crear_tabla()
 
 ventana = tk.Tk()
-ventana.title("Cuenta De Nicolas ")
+ventana.title("Cuenta De Nicolas")
 ventana.geometry("500x450")
-ventana.config(bg="#ff0000")
+ventana.config(bg="#FFFFFF")
 
-# -----------------------
-# FRAME INGRESO DATOS
-# -----------------------
 
-frame_datos = tk.LabelFrame(ventana, text="Ingrese Datos", bg="#080808")
+# FRAME DATOS
+
+frame_datos = tk.LabelFrame(ventana, text="Ingrese Datos", bg="#FFFFFF")
 frame_datos.pack(fill="x", padx=10, pady=5)
 
-tk.Label(frame_datos, text="Cliente:", bg="#000000").grid(row=0, column=0, padx=5, pady=5)
+tk.Label(frame_datos, text="Cliente:", bg="#FFFFFF").grid(row=0, column=0)
+
 entry_cliente = tk.Entry(frame_datos)
 entry_cliente.insert(0, "Hola Campeon")
 entry_cliente.grid(row=0, column=1)
 
-tk.Label(frame_datos, text="Monto:", bg="#000000").grid(row=1, column=0)
+tk.Label(frame_datos, text="Monto:", bg="#FFFFFF").grid(row=1, column=0)
+
 entry_valor = tk.Entry(frame_datos)
 entry_valor.grid(row=1, column=1)
 
-tk.Button(frame_datos, text="Abrir Cuenta").grid(row=0, column=2, padx=10)
 
-# -----------------------
 # FRAME TRANSACCIONES
-# -----------------------
 
 frame_trans = tk.LabelFrame(ventana, text="Transacciones", bg="#FFFFFF")
 frame_trans.pack(fill="x", padx=10, pady=5)
 
-tk.Button(frame_trans, text="Depósitos", width=15, command=depositar).pack(side="left", padx=20, pady=5)
+tk.Button(frame_trans, text="Depósitos", width=15, command=depositar).pack(side="left", padx=20)
+
 tk.Button(frame_trans, text="Retiros", width=15, command=retirar).pack(side="left", padx=20)
 
-# -----------------------
+
 # FRAME CUENTA
-# -----------------------
 
 frame_cuenta = tk.LabelFrame(ventana, text="Cuenta de Ahorros", bg="#FFFFFF")
 frame_cuenta.pack(fill="both", expand=True, padx=10, pady=5)
 
-# Depositos
-tk.Label(frame_cuenta, text="Depósitos", bg="#FFFFFF").grid(row=0, column=1)
-lista_depositos = tk.Listbox(frame_cuenta, width=20, height=10)
-lista_depositos.grid(row=1, column=1, padx=10)
 
-# Retiros
+# RETIROS
+
 tk.Label(frame_cuenta, text="Retiros", bg="#FFFFFF").grid(row=0, column=0)
+
 lista_retiros = tk.Listbox(frame_cuenta, width=20, height=10)
-lista_retiros.grid(row=1, column=0, padx=10)
+lista_retiros.grid(row=1, column=0)
 
 
-# Saldo
+# DEPOSITOS
+
+tk.Label(frame_cuenta, text="Depósitos", bg="#FFFFFF").grid(row=0, column=1)
+
+lista_depositos = tk.Listbox(frame_cuenta, width=20, height=10)
+lista_depositos.grid(row=1, column=1)
+
+
+# SALDO
+
 tk.Label(frame_cuenta, text="Saldo:", bg="#FFFFFF").grid(row=1, column=2)
-entry_saldo = tk.Entry(frame_cuenta, state="readonly")
-entry_saldo.grid(row=1, column=3, padx=5)
 
-# Botón nuevo
-tk.Button(frame_cuenta, text="Nuevo", command=nuevo).grid(row=2, column=3, pady=10)
- 
-    # Botón eliminar ← AQUI
-tk.Button(frame_cuenta, text="Eliminar", command=eliminar_transaccion).grid(row=3, column=3, pady=5)
-# -----------------------
+entry_saldo = tk.Entry(frame_cuenta, state="readonly")
+entry_saldo.grid(row=1, column=3)
+
+
+# BOTONES
+
+tk.Button(frame_cuenta, text="Nuevo", command=nuevo).grid(row=0, column=3)
+
+tk.Button(frame_cuenta, text="Eliminar", command=eliminar_transaccion).grid(row=4, column=3)
+
+tk.Button(frame_cuenta, text="Exportar PDF", command=exportar_pdf).grid(row=4, column=0
+)
+
+tk.Button(frame_cuenta, text="Exportar Excel", command=exportar_excel).grid(row=4, column=1)
+
+
+# INICIAR
 
 actualizar_listas()
 

@@ -371,14 +371,13 @@ entry_saldo.grid(row=1, column=3)
 
 # BOTONES
 
-tk.Button(frame_cuenta, text="Nuevo", command=nuevo).grid(row=0, column=3)
+tk.Button(frame_cuenta, text="Nuevo", command=nuevo).grid(row=2, column=3)
 
-tk.Button(frame_cuenta, text="Eliminar", command=eliminar_transaccion).grid(row=4, column=3)
+tk.Button(frame_cuenta, text="Eliminar", command=eliminar_transaccion).grid(row=3, column=3)
 
-tk.Button(frame_cuenta, text="Exportar PDF", command=exportar_pdf).grid(row=4, column=0
-)
+tk.Button(frame_cuenta, text="Exportar PDF", command=exportar_pdf).grid(row=4, column=3)
 
-tk.Button(frame_cuenta, text="Exportar Excel", command=exportar_excel).grid(row=4, column=1)
+tk.Button(frame_cuenta, text="Exportar Excel", command=exportar_excel).grid(row=5, column=3)
 
 
 # INICIAR
